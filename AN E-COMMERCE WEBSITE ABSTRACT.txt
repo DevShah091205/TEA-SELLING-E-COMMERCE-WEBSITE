@@ -1,0 +1,13 @@
+Project Title: AN E-COMMERCE WEBSITE FOR A TEA SELLING COMPANY
+
+Submitted by:
+DEV SHAH
+Enrollment No.: 92400103340
+Class: EC3
+
+Abstract
+
+The project “Heritage and Aroma – Tea Selling E-Commerce Website” is an online platform that enables customers to explore and purchase a variety of premium teas. It offers features like product browsing, secure payments, order tracking, and customer feedback.
+
+
+ The admin panel allows easy management of products, orders, and inventory. Built using HTML, CSS, and JavaScript, the website provides a responsive and user-friendly interface, promoting the rich tradition of tea through modern digital technology.

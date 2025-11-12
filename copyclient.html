@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heritage and Aroma - Premium Tea Blends</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'tea-dark': {
+                            // Deep Olive / Tea Leaf
+                            light: '#6B8E23', 
+                            DEFAULT: '#4A4A3A',
+                            dark: '#3A3A2A',
+                        },
+                        'tea-accent': {
+                            // Faded Gold / Tan
+                            light: '#D2B48C',
+                            DEFAULT: '#C19A6B',
+                            dark: '#AA865B',
+                        },
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .nav-link {
+            @apply text-white hover:text-tea-accent-light transition-colors duration-200;
+        }
+        .btn {
+            @apply px-6 py-2 rounded-lg font-semibold text-white transition-all duration-300;
+        }
+        .btn-gold {
+            @apply bg-tea-accent hover:bg-tea-accent-dark shadow-md hover:shadow-lg;
+        }
+        .btn-green {
+            @apply bg-tea-dark hover:bg-tea-dark-dark text-white;
+        }
+        /* Page transition styles (simple fade) */
+        #app-content {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Simple modal for messages */
+        #message-modal {
+            transition: opacity 0.3s, transform 0.3s;
+        }
+    </style>
+</head>
+<body class="text-gray-900">
+
+    <div id="app" class="min-h-screen flex flex-col">
+        <header id="main-header" class="bg-tea-dark text-white shadow-lg sticky top-0 z-50">
+            </header>
+
+        <main id="app-content" class="flex-grow">
+            </main>
+
+        <footer id="main-footer" class="bg-tea-dark-dark text-white p-10 mt-16">
+            <div class="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h5 class="text-xl font-bold mb-4 text-tea-accent">Quick Links</h5>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="nav-link" data-nav="home">Home</a></li>
+                        <li><a href="#" class="nav-link" data-nav="shop">Shop Teas</a></li>
+                        <li><a href="#" class="nav-link" data-nav="about">Our Heritage</a></li>
+                        <li><a href="#" class="nav-link" data-nav="contact">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 class="text-xl font-bold mb-4 text-tea-accent">About Us</h5>
+                    <p class="text-gray-300">
+                        Sharing the finest tea blends since 2005. We provide premium tea with a rich, authentic flavour and aroma, hand-picked for your enjoyment.
+                    </p>
+                </div>
+                <div>
+                    <h5 class="text-xl font-bold mb-4 text-tea-accent">Subscribe</h5>
+                    <p class="text-gray-300 mb-4">Get updates on new tea arrivals and special offers.</p>
+                    <div class="flex">
+                        <input type="email" placeholder="Enter your email" class="flex-grow p-2 rounded-l-lg text-gray-900 focus:outline-none">
+                        <button class="btn btn-gold rounded-l-none">Subscribe</button>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center text-gray-400 border-t border-tea-dark-light mt-8 pt-6">
+                &copy; 2025 Heritage and Aroma. EST 2005. All Rights Reserved.
+            </div>
+        </footer>
+    </div>
+
+    <div id="message-modal" class="fixed top-5 right-5 bg-tea-dark text-white p-4 rounded-lg shadow-xl translate-x-full opacity-0 z-50">
+        <span id="message-text"></span>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- STATE MANAGEMENT ---
+            const state = {
+                currentPage: 'home',
+                cart: [],
+                selectedProductId: null,
+                // FILTER STATE VARIABLES
+                filterOpen: false, 
+                selectedFilter: 'All', // Tea Type Filter
+                selectedCaffeine: 'All', // Caffeine Filter (NEW)
+                selectedPriceRange: 'All', // Price Filter (NEW)
+            };
+
+            // --- MOCK PRODUCT DATA (Updated for Tea) ---
+            const PRODUCTS = [
+                { id: 1, name: 'Assam Gold Blend', brand: 'Heritage & Aroma', price: 18.00, description: 'A bold, malty Assam blend perfect for a morning cup. Rich and full-bodied.', image: 'https://placehold.co/600x600/4A4A3A/C19A6B?text=Assam+Gold+Blend', related: [2, 3, 4] },
+                { id: 2, name: 'Jasmine Green Harmony', brand: 'Zen Teas', price: 14.50, description: 'Delicate green tea scented with fresh jasmine flowers. A floral, calming experience.', image: 'https://placehold.co/600x600/C19A6B/4A4A3A?text=Jasmine+Green', related: [1, 5, 6] },
+                { id: 3, name: 'Earl Grey Reserve', brand: 'Heritage & Aroma', price: 22.00, description: 'Premium black tea infused with high-quality bergamot oil. A classic aromatic choice.', image: 'https://placehold.co/600x600/4A4A3A/C19A6B?text=Earl+Grey+Reserve', related: [4, 7, 8] },
+                { id: 4, name: 'Peppermint Revive', brand: 'Herbal Infusions', price: 11.50, description: 'A refreshing, naturally caffeine-free herbal tea with a crisp mint flavor. Great hot or iced.', image: 'https://placehold.co/600x600/C19A6B/4A4A3A?text=Peppermint+Revive', related: [1, 2, 5] },
+                { id: 5, name: 'Darjeeling First Flush', brand: 'Premium Estates', price: 35.00, description: 'The champagne of teas. Light, bright, and highly sought after spring harvest.', image: 'https://placehold.co/600x600/4A4A3A/C19A6B?text=Darjeeling+First+Flush', related: [6, 7, 1] },
+                { id: 6, name: 'Spiced Chai', brand: 'Aroma Blends', price: 16.00, description: 'A warming blend of black tea, cinnamon, cardamom, and cloves. Perfect for a latte.', image: 'https://placehold.co/600x600/C19A6B/4A4A3A?text=Spiced+Chai', related: [8, 3, 2] },
+                { id: 7, name: 'Hibiscus Berry', brand: 'Herbal Infusions', price: 13.50, description: 'A vibrant, tart blend that brews a beautiful crimson color. Rich in antioxidants.', image: 'https://placehold.co/600x600/4A4A3A/C19A6B?text=Hibiscus+Berry', related: [1, 4, 8] },
+                { id: 8, name: 'Rooibos Vanilla', brand: 'Heritage & Aroma', price: 15.00, description: 'Naturally sweet and woody South African red tea with a creamy vanilla finish.', image: 'https://placehold.co/600x600/C19A6B/4A4A3A?text=Rooibos+Vanilla', related: [2, 5, 7] },
+            ]; 
+
+            // --- DOM SELECTORS ---
+            const app = document.getElementById('app');
+            const header = document.getElementById('main-header');
+            const content = document.getElementById('app-content');
+            const messageModal = document.getElementById('message-modal');
+            const messageText = document.getElementById('message-text');
+
+            // --- UTILITY FUNCTIONS ---
+            /**
+             * Shows a brief message modal
+             * @param {string} message - The text to display
+             */
+            function showMessage(message) {
+                messageText.textContent = message;
+                messageModal.classList.remove('translate-x-full', 'opacity-0');
+                messageModal.classList.add('translate-x-0', 'opacity-100');
+                setTimeout(() => {
+                    messageModal.classList.add('translate-x-full', 'opacity-0');
+                    messageModal.classList.remove('translate-x-0', 'opacity-100');
+                }, 3000);
+            }
+
+            /**
+             * Calculates the total number of items in the cart
+             * @returns {number}
+             */
+            function getCartItemCount() {
+                return state.cart.reduce((total, item) => total + item.quantity, 0);
+            }
+
+            /**
+             * Calculates cart totals
+             * @returns {object} - { subtotal, shipping, taxes, grandTotal }
+             */
+            function getCartTotals() {
+                const subtotal = state.cart.reduce((total, cartItem) => {
+                    const product = PRODUCTS.find(p => p.id === cartItem.id);
+                    return total + (product.price * cartItem.quantity);
+                }, 0);
+                const shipping = subtotal > 0 ? 5.00 : 0.00; // Flat $5 shipping for simplicity
+                const taxes = subtotal * 0.08; // 8% tax rate
+                const grandTotal = subtotal + shipping + taxes;
+
+                return {
+                    subtotal: subtotal.toFixed(2),
+                    shipping: shipping.toFixed(2),
+                    taxes: taxes.toFixed(2),
+                    grandTotal: grandTotal.toFixed(2),
+                };
+            }
+
+            /**
+             * Updates the quantity of a product in the cart
+             * @param {number} id - The product ID
+             * @param {number} quantity - The new quantity
+             */
+            function updateCartQuantity(id, quantity) {
+                const itemIndex = state.cart.findIndex(item => item.id === id);
+                if (itemIndex > -1) {
+                    if (quantity > 0) {
+                        state.cart[itemIndex].quantity = quantity;
+                    } else {
+                        // Remove item if quantity is zero
+                        state.cart.splice(itemIndex, 1);
+                        showMessage(`Item removed from cart.`);
+                    }
+                    renderPage(); // Re-render the cart page to update totals
+                    renderHeader(); // Update the cart count in the header
+                }
+            }
+
+            /**
+             * Adds a product to the cart or updates quantity if it exists
+             * @param {number} id - The product ID
+             * @param {number} quantity - The quantity to add
+             */
+            function addToCart(id, quantity = 1) {
+                const product = PRODUCTS.find(p => p.id === id);
+                if (!product) return;
+
+                const existingItem = state.cart.find(item => item.id === id);
+                
+                if (existingItem) {
+                    existingItem.quantity += quantity;
+                } else {
+                    state.cart.push({ id, quantity });
+                }
+                
+                showMessage(`${product.name} added to cart!`);
+                renderHeader();
+            }
+
+            /**
+             * Removes a product completely from the cart
+             * @param {number} id - The product ID
+             */
+            function removeFromCart(id) {
+                const product = PRODUCTS.find(p => p.id === id);
+                state.cart = state.cart.filter(item => item.id !== id);
+                showMessage(`${product.name} removed from cart.`);
+                renderPage(); 
+                renderHeader();
+            }
+            
+            /**
+             * Determines the tea filter tag (type) for a given product.
+             * @param {object} product - The product object
+             * @returns {string} - The filter tag
+             */
+            function getProductFilterTag(product) {
+                if (product.name.includes('Chai')) return 'Chai'; 
+                if (product.name.includes('Darjeeling')) return 'Darjeeling'; 
+                if (product.name.includes('Green')) return 'Green Tea';
+                if (product.name.includes('Peppermint') || product.name.includes('Hibiscus')) return 'Herbal Infusion';
+                if (product.name.includes('Rooibos')) return 'Rooibos';
+                return 'Black Tea'; // Default for Assam, Earl Grey
+            }
+
+            /**
+             * Determines the caffeine level tag for a given product (NEW UTILITY).
+             * @param {object} product - The product object
+             * @returns {string} - The caffeine level tag ('High', 'Low', 'Caffeine Free')
+             */
+            function getProductCaffeineLevel(product) {
+                if (product.name.includes('Peppermint') || product.name.includes('Rooibos') || product.name.includes('Hibiscus')) {
+                    return 'Caffeine Free';
+                }
+                if (product.name.includes('Green')) {
+                    return 'Low';
+                }
+                // Default for Black Teas, Chai, Darjeeling
+                return 'High'; 
+            }
+
+            /**
+             * Checks if a product's price falls within a selected range (NEW UTILITY).
+             * @param {object} product - The product object
+             * @param {string} range - The selected range ('Under $15', '$15 - $25', 'Over $25')
+             * @returns {boolean}
+             */
+            function isProductInPriceRange(product, range) {
+                const price = product.price;
+
+                if (range === 'All') return true;
+                
+                if (range === 'Under $15') return price < 15.00;
+                if (range === '$15 - $25') return price >= 15.00 && price <= 25.00;
+                if (range === 'Over $25') return price > 25.00;
+
+                return false;
+            }
+
+
+            // --- RENDERING FUNCTIONS ---
+            
+            /**
+             * Renders the main navigation header
+             */
+            function renderHeader() {
+                const cartCount = getCartItemCount();
+
+                header.innerHTML = `
+                    <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+                        <h1 class="text-3xl font-bold text-tea-accent">
+                            <a href="#" data-nav="home" class="hover:text-tea-accent-light transition-colors duration-200">
+                                Heritage and Aroma
+                            </a>
+                        </h1>
+                        <nav class="hidden md:block">
+                            <ul class="flex space-x-6">
+                                <li><a href="#" class="nav-link ${state.currentPage === 'home' ? 'font-bold underline' : ''}" data-nav="home">Home</a></li>
+                                <li><a href="#" class="nav-link ${state.currentPage === 'shop' ? 'font-bold underline' : ''}" data-nav="shop">Shop Teas</a></li>
+                                <li><a href="#" class="nav-link ${state.currentPage === 'about' ? 'font-bold underline' : ''}" data-nav="about">Our Heritage</a></li>
+                                <li><a href="#" class="nav-link ${state.currentPage === 'contact' ? 'font-bold underline' : ''}" data-nav="contact">Contact</a></li>
+                            </ul>
+                        </nav>
+                        <div class="flex items-center space-x-4">
+                            <button class="relative p-2 text-white hover:text-tea-accent-light transition-colors duration-200" data-nav="cart">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                                <span id="cart-count" class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-tea-dark transform translate-x-1/2 -translate-y-1/2 bg-tea-accent rounded-full">${cartCount}</span>
+                            </button>
+                            <button class="md:hidden p-2 text-white hover:text-tea-accent-light transition-colors duration-200" data-action="toggle-menu">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            /**
+             * Renders a single product card
+             * @param {object} product - The product object
+             * @returns {string} - HTML string for the product card
+             */
+            function renderProductCard(product) {
+                return `
+                    <div class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
+                        <a href="#" data-nav="product-detail" data-id="${product.id}">
+                            <img src="${product.image}" alt="${product.name}" class="w-full h-64 object-cover">
+                        </a>
+                        <div class="p-5">
+                            <h4 class="text-xl font-semibold text-tea-dark mb-1">${product.name}</h4>
+                            <p class="text-gray-500 mb-3">${product.brand}</p>
+                            <p class="text-2xl font-bold text-tea-accent mb-4">$${product.price.toFixed(2)}</p>
+                            <button class="btn btn-green w-full" data-action="add-to-cart" data-id="${product.id}">
+                                Add to Cart
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            /**
+             * Renders the Home Page content
+             * @returns {string} - HTML string for the Home Page
+             */
+            function renderHomePage() {
+                return `
+                    <section class="bg-tea-dark h-96 md:h-screen flex items-center">
+                        <div class="container mx-auto px-4 z-10 text-center text-white">
+                            <h2 class="text-5xl md:text-7xl font-extrabold mb-4 text-tea-accent-light">
+                                Taste the Heritage. Experience the Aroma.
+                            </h2>
+                            <p class="text-xl md:text-2xl mb-8 font-light">
+                                Discover our collection of hand-picked, premium tea blends from the finest estates.
+                            </p>
+                            <a href="#" class="btn btn-gold text-lg" data-nav="shop">
+                                Explore Our Teas
+                            </a>
+                        </div>
+                    </section>
+
+                    <section class="container mx-auto px-4 py-16">
+                        <h3 class="text-3xl font-bold text-center mb-10 text-tea-dark">Featured Tea Blends</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            ${PRODUCTS.slice(0, 3).map(product => renderProductCard(product)).join('')}
+                        </div>
+                    </section>
+
+                    <section class="bg-gray-100 py-16">
+                        <div class="container mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                            <img src="https://placehold.co/600x400/C19A6B/4A4A3A?text=Tea+Process" alt="Tea preparation" class="rounded-lg shadow-xl">
+                            <div>
+                                <h3 class="text-3xl font-bold mb-4 text-tea-dark">Our Commitment to Quality</h3>
+                                <p class="text-lg text-gray-700 mb-4">
+                                    At Heritage and Aroma, we believe the best tea comes from the best estates. We source our leaves through direct trade, ensuring fair practices and exceptional quality in every tin.
+                                </p>
+                                <p class="text-lg text-gray-700 mb-6">
+                                    From the misty mountains of Darjeeling to the fertile plains of Assam, our heritage is in sharing the world's finest aromas with you.
+                                </p>
+                                <a href="#" class="text-tea-accent font-semibold hover:text-tea-dark transition-colors duration-200" data-nav="about">
+                                    Learn More About Our Sourcing &rarr;
+                                </a>
+                            </div>
+                        </div>
+                    </section>
+                `;
+            }
+
+            /**
+             * Renders the Shop Page content (all products)
+             * @returns {string} - HTML string for the Shop Page
+             */
+            function renderShopPage() {
+                // Filter definitions
+                const teaTypeOptions = ['All', 'Black Tea', 'Green Tea', 'Herbal Infusion', 'Rooibos', 'Chai', 'Darjeeling'];
+                const caffeineOptions = ['All', 'High', 'Low', 'Caffeine Free']; // NEW
+                const priceOptions = ['All', 'Under $15', '$15 - $25', 'Over $25']; // NEW
+
+
+                // FILTERING LOGIC: Combine all three active filters
+                const filteredProducts = PRODUCTS.filter(product => {
+                    const matchesType = state.selectedFilter === 'All' || getProductFilterTag(product) === state.selectedFilter;
+                    const matchesCaffeine = state.selectedCaffeine === 'All' || getProductCaffeineLevel(product) === state.selectedCaffeine;
+                    const matchesPrice = state.selectedPriceRange === 'All' || isProductInPriceRange(product, state.selectedPriceRange);
+
+                    return matchesType && matchesCaffeine && matchesPrice;
+                });
+
+                // Helper to render filter buttons
+                const renderFilterButtons = (options, selectedValue, dataActionPrefix, dataAttr) => options.map(filter => `
+                    <button class="px-3 py-1 text-sm rounded-full transition-colors duration-200 
+                        ${selectedValue === filter ? 'bg-tea-accent text-white font-bold shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
+                        data-action="${dataActionPrefix}" ${dataAttr}="${filter}">
+                        ${filter}
+                    </button>
+                `).join('');
+
+                const teaTypeButtonsHtml = renderFilterButtons(teaTypeOptions, state.selectedFilter, 'set-type-filter', 'data-filter-value');
+                const caffeineButtonsHtml = renderFilterButtons(caffeineOptions, state.selectedCaffeine, 'set-caffeine-filter', 'data-caffeine-value');
+                const priceButtonsHtml = renderFilterButtons(priceOptions, state.selectedPriceRange, 'set-price-filter', 'data-price-value');
+
+
+                return `
+                    <section class="container mx-auto px-4 py-12">
+                        <h2 class="text-4xl font-bold text-center mb-6 text-tea-dark">Our Full Collection of Tea Blends</h2>
+                        
+                        <div class="mb-8 flex justify-end">
+                            <button class="btn btn-green flex items-center space-x-2" data-action="toggle-filter">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" />
+                                </svg>
+                                <span>Filter Teas</span>
+                            </button>
+                        </div>
+
+                        <div id="filter-panel" class="${state.filterOpen ? 'max-h-[600px] opacity-100 py-4' : 'max-h-0 opacity-0'} 
+                            transition-all duration-500 ease-in-out overflow-hidden bg-white p-6 rounded-xl shadow-lg mb-8 space-y-6">
+                            
+                            <div>
+                                <h3 class="text-xl font-bold mb-3 text-tea-dark">Tea Type Filter (${state.selectedFilter})</h3>
+                                <div class="flex flex-wrap gap-3">
+                                    ${teaTypeButtonsHtml}
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 class="text-xl font-bold mb-3 text-tea-dark">Caffeine Level (${state.selectedCaffeine})</h3>
+                                <div class="flex flex-wrap gap-3">
+                                    ${caffeineButtonsHtml}
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h3 class="text-xl font-bold mb-3 text-tea-dark">Price Range (${state.selectedPriceRange})</h3>
+                                <div class="flex flex-wrap gap-3">
+                                    ${priceButtonsHtml}
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                            ${filteredProducts.length > 0 
+                                ? filteredProducts.map(product => renderProductCard(product)).join('')
+                                : `<div class="col-span-full text-center py-10 text-gray-600 text-lg">No blends found matching the selected criteria.</div>`
+                            }
+                        </div>
+                    </section>
+                `;
+            }
+
+            /**
+             * Renders the Product Detail Page content
+             * @param {number} id - The ID of the product to display
+             * @returns {string} - HTML string for the Product Detail Page
+             */
+            function renderProductDetailPage(id) {
+                const product = PRODUCTS.find(p => p.id === id);
+                if (!product) return `<div class="p-10 text-center text-red-600">Tea Blend Not Found.</div>`;
+
+                const relatedProducts = product.related.map(relatedId => PRODUCTS.find(p => p.id === relatedId)).filter(p => p);
+                
+                // Use new utility function for accurate display
+                const caffeineDisplay = getProductCaffeineLevel(product);
+
+                return `
+                    <section class="container mx-auto px-4 py-12">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 bg-white p-8 rounded-xl shadow-lg">
+                            <div class="lg:sticky top-20 h-max">
+                                <img src="${product.image}" alt="${product.name}" class="w-full rounded-lg shadow-md">
+                            </div>
+
+                            <div>
+                                <p class="text-gray-500 text-sm uppercase tracking-widest mb-2">${product.brand}</p>
+                                <h2 class="text-4xl font-bold text-tea-dark mb-4">${product.name}</h2>
+                                <p class="text-4xl font-extrabold text-tea-accent mb-6">$${product.price.toFixed(2)}</p>
+                                
+                                <h3 class="text-xl font-semibold text-gray-700 mb-2">Description</h3>
+                                <p class="text-gray-600 mb-8">${product.description}</p>
+                                
+                                <div class="flex items-center space-x-4 mb-8">
+                                    <label for="quantity-input" class="text-lg font-medium text-tea-dark">Quantity:</label>
+                                    <input type="number" id="quantity-input" value="1" min="1" class="w-20 p-2 border border-gray-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-tea-accent">
+                                </div>
+                                
+                                <button class="btn btn-gold text-lg w-full md:w-auto" data-action="add-to-cart-detail" data-id="${product.id}">
+                                    Add to Cart
+                                </button>
+                                
+                                <div class="mt-8 pt-6 border-t border-gray-200">
+                                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Details</h3>
+                                    <ul class="text-gray-600 space-y-2">
+                                        <li><span class="font-medium">Type:</span> ${getProductFilterTag(product)}</li>
+                                        <li><span class="font-medium">Caffeine:</span> ${caffeineDisplay}</li>
+                                        <li><span class="font-medium">Best Served:</span> Hot, with milk (Chai/Assam) or without (Green/Darjeeling).</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-16">
+                            <h3 class="text-3xl font-bold text-tea-dark text-center mb-8">You Might Also Love</h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+                                ${relatedProducts.map(product => renderProductCard(product)).join('')}
+                            </div>
+                        </div>
+                    </section>
+                `;
+            }
+
+            /**
+             * Renders the Cart Page content
+             * @returns {string} - HTML string for the Cart Page
+             */
+            function renderCartPage() {
+                if (state.cart.length === 0) {
+                    return `
+                        <section class="container mx-auto px-4 py-24 text-center">
+                            <h2 class="text-4xl font-bold mb-4 text-tea-dark">Your Tea Cart is Empty</h2>
+                            <p class="text-lg text-gray-600 mb-8">Time to find your next favourite blend!</p>
+                            <a href="#" class="btn btn-gold text-lg" data-nav="shop">
+                                Start Shopping
+                            </a>
+                        </section>
+                    `;
+                }
+
+                const cartItemsHtml = state.cart.map(cartItem => {
+                    const product = PRODUCTS.find(p => p.id === cartItem.id);
+                    if (!product) return '';
+
+                    return `
+                        <div class="flex items-center justify-between border-b py-4">
+                            <div class="flex items-center space-x-4">
+                                <img src="${product.image}" alt="${product.name}" class="w-20 h-20 object-cover rounded-lg">
+                                <div>
+                                    <h4 class="font-semibold text-tea-dark">${product.name}</h4>
+                                    <p class="text-gray-500 text-sm">${product.brand}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-6">
+                                <p class="font-medium text-lg">$${product.price.toFixed(2)}</p>
+                                <input type="number" value="${cartItem.quantity}" min="1" 
+                                    class="w-16 p-2 border border-gray-300 rounded-lg text-center"
+                                    data-action="update-quantity" data-id="${product.id}">
+                                <p class="font-bold text-lg text-tea-accent">$${(product.price * cartItem.quantity).toFixed(2)}</p>
+                                <button class="text-red-500 hover:text-red-700" data-action="remove-from-cart" data-id="${product.id}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                const totals = getCartTotals();
+
+                return `
+                    <section class="container mx-auto px-4 py-12">
+                        <h2 class="text-4xl font-bold text-center mb-12 text-tea-dark">Your Tea Cart</h2>
+                        
+                        <div class="flex flex-col lg:flex-row gap-8">
+                            <div class="lg:w-2/3 bg-white p-6 rounded-xl shadow-lg">
+                                ${cartItemsHtml}
+                            </div>
+
+                            <div class="lg:w-1/3 bg-gray-50 p-6 rounded-xl shadow-lg sticky top-20 h-max">
+                                <h3 class="text-2xl font-bold mb-4 text-tea-dark">Order Summary</h3>
+                                <div class="space-y-3 border-b pb-4 mb-4 text-gray-700">
+                                    <div class="flex justify-between">
+                                        <span>Subtotal (${getCartItemCount()} items)</span>
+                                        <span>$${totals.subtotal}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Shipping</span>
+                                        <span>$${totals.shipping}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Taxes (8%)</span>
+                                        <span>$${totals.taxes}</span>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between font-bold text-xl text-tea-dark">
+                                    <span>Order Total</span>
+                                    <span>$${totals.grandTotal}</span>
+                                </div>
+                                <button class="btn btn-gold w-full mt-6" data-nav="checkout">
+                                    Proceed to Checkout
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                `;
+            }
+
+            /**
+             * Renders the Secure Checkout Page content
+             * @returns {string} - HTML string for the Checkout Page
+             */
+            function renderCheckoutPage() {
+                const totals = getCartTotals();
+                const itemsList = state.cart.map(cartItem => {
+                    const product = PRODUCTS.find(p => p.id === cartItem.id);
+                    return `
+                        <div class="flex justify-between text-sm text-gray-600">
+                            <span>${cartItem.quantity}x ${product.name}</span>
+                            <span>$${(product.price * cartItem.quantity).toFixed(2)}</span>
+                        </div>
+                    `;
+                }).join('');
+                
+                return `
+                    <section class="container mx-auto px-4 py-12">
+                        <h2 class="text-4xl font-bold text-center mb-10 text-tea-dark">Secure Checkout</h2>
+                        
+                        <div class="flex flex-col lg:flex-row gap-10 max-w-6xl mx-auto">
+                            
+                            <div class="lg:w-2/3 space-y-8">
+                                <div class="bg-white p-6 rounded-xl shadow-lg">
+                                    <h3 class="text-2xl font-bold mb-4 text-tea-dark border-b pb-2">1. Shipping Information</h3>
+                                    <form id="shipping-form" class="space-y-4">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <input type="text" placeholder="Full Name" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-tea-accent focus:border-tea-accent" required>
+                                            <input type="email" placeholder="Email Address" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-tea-accent focus:border-tea-accent" required>
+                                        </div>
+                                        <input type="text" placeholder="Address Line 1" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-tea-accent focus:border-tea-accent" required>
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <input type="text" placeholder="City" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-tea-accent focus:border-tea-accent" required>
+                                            <input type="text" placeholder="State / Province" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-tea-accent focus:border-tea-accent" required>
+                                            <input type="text" placeholder="Zip / Postal Code" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-tea-accent focus:border-tea-accent" required>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <div class="bg-white p-6 rounded-xl shadow-lg">
+                                    <h3 class="text-2xl font-bold mb-4 text-tea-dark border-b pb-2">2. Payment Details</h3>
+                                    <form id="payment-form" class="space-y-4">
+                                        <input type="text" placeholder="Card Number" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-tea-accent focus:border-tea-accent" required maxlength="16">
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <input type="text" placeholder="MM/YY (Expiration)" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-tea-accent focus:border-tea-accent" required maxlength="5">
+                                            <input type="text" placeholder="CVC" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-tea-accent focus:border-tea-accent" required maxlength="4">
+                                        </div>
+                                        <input type="text" placeholder="Name on Card" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-tea-accent focus:border-tea-accent" required>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <div class="lg:w-1/3 space-y-8">
+                                <div class="bg-gray-50 p-6 rounded-xl shadow-lg sticky lg:top-20">
+                                    <h3 class="text-2xl font-bold mb-4 text-tea-dark">Your Order (${getCartItemCount()} items)</h3>
+                                    
+                                    <div class="space-y-2 border-b pb-4 mb-4 max-h-40 overflow-y-auto">
+                                        ${itemsList}
+                                    </div>
+
+                                    <div class="space-y-3 border-b pb-4 mb-4 text-gray-700">
+                                        <div class="flex justify-between">
+                                            <span>Subtotal</span>
+                                            <span>$${totals.subtotal}</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span>Shipping</span>
+                                            <span>$${totals.shipping}</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span>Taxes (8%)</span>
+                                            <span>$${totals.taxes}</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-between font-bold text-2xl text-tea-dark">
+                                        <span>Total Due</span>
+                                        <span>$${totals.grandTotal}</span>
+                                    </div>
+
+                                    <button class="btn btn-gold w-full mt-6 text-lg" data-action="complete-purchase">
+                                        Place Order & Pay $${totals.grandTotal}
+                                    </button>
+                                    <p class="text-center text-xs text-gray-500 mt-2">
+                                        *All transactions are secure and encrypted.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                `;
+            }
+
+            /**
+             * Renders a generic static content page (for About/Contact)
+             * @param {string} title - Page title
+             * @param {string} contentHtml - HTML content for the page
+             * @returns {string} - HTML string
+             */
+            function renderStaticPage(title, contentHtml) {
+                return `
+                    <section class="container mx-auto px-4 py-16">
+                        <div class="max-w-4xl mx-auto bg-white p-10 rounded-xl shadow-lg">
+                            <h2 class="text-4xl font-bold mb-8 text-tea-dark border-b pb-4">${title}</h2>
+                            ${contentHtml}
+                        </div>
+                    </section>
+                `;
+            }
+
+            // --- PAGE CONTENT DEFINITIONS ---
+
+            const ABOUT_PAGE_CONTENT = `
+                <h3 class="text-2xl font-semibold text-tea-accent mb-4">Our Heritage, Your Aroma</h3>
+                <p class="text-gray-700 mb-6">
+                    Established in 2005, Heritage and Aroma was founded on a simple principle: to connect discerning tea drinkers with the world's most exceptional, ethically-sourced teas. We travel to the source, meeting with tea masters and selecting only the finest harvests. Our commitment is to the tradition and purity of every leaf.
+                </p>
+                <h3 class="text-2xl font-semibold text-tea-accent mb-4">The Sourcing Process</h3>
+                <p class="text-gray-700 mb-6">
+                    We specialize in single-estate teas and unique, proprietary blends. This direct relationship with the estates guarantees a superior product and supports sustainable, fair-trade farming practices. When you brew a cup of Heritage and Aroma tea, you are tasting a centuries-old tradition, perfected.
+                </p>
+                <img src="https://placehold.co/800x300/4A4A3A/C19A6B?text=Tea+Estate+View" alt="Tea Estate" class="w-full h-auto rounded-lg shadow-md my-8">
+            `;
+
+            const CONTACT_PAGE_CONTENT = `
+                <p class="text-gray-700 mb-6">
+                    Have a question about our blends, a custom order, or just want to talk tea? We'd love to hear from you.
+                </p>
+                <form class="space-y-6">
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-tea-dark mb-1">Name</label>
+                        <input type="text" id="name" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-tea-accent" required>
+                    </div>
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-tea-dark mb-1">Email</label>
+                        <input type="email" id="email" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-tea-accent" required>
+                    </div>
+                    <div>
+                        <label for="message" class="block text-sm font-medium text-tea-dark mb-1">Message</label>
+                        <textarea id="message" rows="4" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-tea-accent" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-gold w-full" data-action="submit-contact">Send Message</button>
+                </form>
+                <div class="mt-8 pt-6 border-t border-gray-200">
+                    <h4 class="text-xl font-semibold text-tea-dark mb-2">Our Details</h4>
+                    <p class="text-gray-700">Email: info@heritageandaroma.com</p>
+                    <p class="text-gray-700">Phone: (555) TEA-BREW</p>
+                    <p class="text-gray-700">Address: 101 Aroma Lane, Tea City, TC 90210</p>
+                </div>
+            `;
+
+
+            /**
+             * Main function to render the current page content
+             */
+            function renderPage() {
+                // Clear the content area and add the fade-in class
+                content.innerHTML = ''; 
+                content.classList.remove('opacity-0', 'translate-y-10');
+                void content.offsetWidth; // Trigger reflow
+                content.classList.add('opacity-100', 'translate-y-0');
+
+                switch (state.currentPage) {
+                    case 'home':
+                        content.innerHTML = renderHomePage();
+                        break;
+                    case 'shop':
+                        content.innerHTML = renderShopPage();
+                        break;
+                    case 'product-detail':
+                        content.innerHTML = renderProductDetailPage(state.selectedProductId);
+                        break;
+                    case 'cart':
+                        content.innerHTML = renderCartPage();
+                        break;
+                    case 'checkout': // NEW CASE
+                        content.innerHTML = renderCheckoutPage();
+                        break;
+                    case 'about':
+                        content.innerHTML = renderStaticPage("Our Heritage", ABOUT_PAGE_CONTENT);
+                        break;
+                    case 'contact':
+                        content.innerHTML = renderStaticPage("Contact Us", CONTACT_PAGE_CONTENT);
+                        break;
+                    default:
+                        content.innerHTML = renderHomePage();
+                }
+            }
+
+            /**
+             * Updates the application state and renders the new page
+             * @param {string} page - The page key (e.g., 'home', 'shop')
+             * @param {number | null} productId - The ID of the product for the detail page
+             */
+            function navigateTo(page, productId = null) {
+                if (state.currentPage !== page) {
+                    // Start fade-out effect for current content
+                    content.classList.remove('opacity-100', 'translate-y-0');
+                    content.classList.add('opacity-0', 'translate-y-10');
+
+                    setTimeout(() => {
+                        state.currentPage = page;
+                        state.selectedProductId = productId;
+                        renderPage();
+                        renderHeader();
+                        window.scrollTo(0, 0); // Scroll to top on navigation
+                    }, 500); // Match CSS transition time
+                } else {
+                    state.selectedProductId = productId;
+                    renderPage(); // Re-render if navigating to the same page with new ID (e.g., product detail)
+                    window.scrollTo(0, 0); // Scroll to top on re-render
+                }
+            }
+
+
+            // --- EVENT LISTENERS ---
+
+            /**
+             * Global event listener for navigation and actions
+             */
+            app.addEventListener('click', (e) => {
+                const navTarget = e.target.closest('[data-nav]');
+                const actionTarget = e.target.closest('[data-action]');
+                
+                if (navTarget) {
+                    e.preventDefault();
+                    const page = navTarget.dataset.nav;
+                    const productId = parseInt(navTarget.dataset.id);
+
+                    if (page === 'product-detail') {
+                        navigateTo(page, productId);
+                    } else {
+                        // Handles navigation for 'home', 'shop', 'cart', 'checkout', 'about', 'contact'
+                        navigateTo(page);
+                    }
+
+                } else if (actionTarget) {
+                    const action = actionTarget.dataset.action;
+                    const productId = parseInt(actionTarget.dataset.id);
+
+                    switch (action) {
+                        case 'add-to-cart':
+                            addToCart(productId, 1);
+                            break;
+                            
+                        case 'add-to-cart-detail':
+                            const qtyInput = document.getElementById('quantity-input');
+                            const quantity = parseInt(qtyInput.value) || 1;
+                            addToCart(productId, quantity);
+                            break;
+                        
+                        case 'remove-from-cart':
+                            removeFromCart(productId);
+                            break;
+
+                        case 'toggle-filter': // Toggle filter visibility
+                            state.filterOpen = !state.filterOpen;
+                            renderPage();
+                            break;
+
+                        case 'set-type-filter': // Tea Type Filter
+                            const filterValue = actionTarget.dataset.filterValue;
+                            state.selectedFilter = filterValue;
+                            state.filterOpen = false; 
+                            renderPage();
+                            break;
+
+                        case 'set-caffeine-filter': // Caffeine Filter (NEW)
+                            const caffeineValue = actionTarget.dataset.caffeineValue;
+                            state.selectedCaffeine = caffeineValue;
+                            state.filterOpen = false;
+                            renderPage();
+                            break;
+                            
+                        case 'set-price-filter': // Price Filter (NEW)
+                            const priceValue = actionTarget.dataset.priceValue;
+                            state.selectedPriceRange = priceValue;
+                            state.filterOpen = false;
+                            renderPage();
+                            break;
+
+                        case 'complete-purchase': // Final step of checkout
+                            // In a real application, this is where payment processing occurs.
+                            // Here, we simulate success, clear the cart, and return home.
+                            showMessage('Thank you! Your order has been placed and confirmed. A heritage journey awaits! (This is a demo)');
+                            state.cart = [];
+                            renderHeader();
+                            navigateTo('home');
+                            break;
+                        
+                        case 'submit-contact':
+                            e.preventDefault();
+                            showMessage('Thank you for your message! We will be in touch soon.');
+                            break;
+                    }
+                }
+            });
+
+            /**
+             * Event listener for cart quantity changes
+             */
+            app.addEventListener('change', (e) => {
+                const target = e.target.closest('[data-action="update-quantity"]');
+                if (!target) return;
+
+                const productId = parseInt(target.dataset.id);
+                const quantity = parseInt(target.value);
+                
+                updateCartQuantity(productId, quantity);
+            });
+
+
+            // --- INITIALIZATION ---
+            renderHeader();
+            renderPage(); // Render the initial page
+        });
+    </script>
+</body>
+</html>
