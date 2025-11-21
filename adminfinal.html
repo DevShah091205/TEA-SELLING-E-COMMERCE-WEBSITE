@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heritage and Aroma - Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'tea-dark': {
+                            light: '#6B8E23', 
+                            DEFAULT: '#4A4A3A',
+                            dark: '#3A3A2A',
+                        },
+                        'tea-accent': {
+                            light: '#D2B48C',
+                            DEFAULT: '#C19A6B',
+                            dark: '#AA865B',
+                        },
+                        'admin-blue': '#2563EB',
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f5f7;
+        }
+        .sidebar-link {
+            @apply flex items-center p-3 text-sm font-medium rounded-lg text-gray-200 hover:bg-tea-dark-light hover:text-white transition-colors duration-200 cursor-pointer;
+        }
+        .sidebar-link.active {
+            @apply bg-tea-accent text-tea-dark-dark font-bold hover:bg-tea-accent-dark;
+        }
+        .card {
+            @apply bg-white p-6 rounded-xl shadow-lg border-t-4 border-tea-accent;
+        }
+        .action-btn {
+            @apply px-3 py-1 text-xs rounded transition-colors duration-200;
+        }
+        #admin-content {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        /* Login Page Specifics */
+        .login-bg {
+            background-image: linear-gradient(rgba(74, 74, 58, 0.9), rgba(74, 74, 58, 0.8)), url('https://images.unsplash.com/photo-1564890369478-c59b2f06605e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+    </style>
+</head>
+<body class="text-gray-900">
+
+    <div id="app" class="flex min-h-screen">
+        
+        <aside id="sidebar" class="w-64 bg-tea-dark p-4 shadow-2xl sticky top-0 h-screen hidden">
+            <h1 class="text-2xl font-bold text-tea-accent mb-8 border-b border-tea-dark-light pb-3">
+                <span class="text-white">H&A</span> Admin
+            </h1>
+
+            <nav class="space-y-2">
+                <a class="sidebar-link" data-nav="dashboard">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0h6m-6 0h-2M9 12h6"></path></svg>
+                    <span>Dashboard</span>
+                </a>
+                <a class="sidebar-link" data-nav="products">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2h2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v2M7 7h10"></path></svg>
+                    <span>Product Management</span>
+                </a>
+                <a class="sidebar-link" data-nav="orders">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                    <span>Order Management</span>
+                </a>
+                <a class="sidebar-link" data-nav="customers">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    <span>Customer Management</span>
+                </a>
+                <a class="sidebar-link" data-nav="categories">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                    <span>Category Management</span>
+                </a>
+                <a class="sidebar-link" data-nav="settings">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.298.608 3.3 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <span>Settings</span>
+                </a>
+                <div class="pt-4 mt-4 border-t border-tea-dark-light">
+                    <a class="sidebar-link text-red-300 hover:bg-red-900 hover:text-red-100" data-action="logout">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </nav>
+            
+            <div class="absolute bottom-4 text-xs text-gray-400">
+                <p>&copy; 2025 H&A Admin</p>
+            </div>
+        </aside>
+
+        <main id="admin-content" class="flex-grow p-0">
+            </main>
+    </div>
+
+    <div id="edit-modal" class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop hidden">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg mx-4 transform transition-all duration-300 scale-95 opacity-0">
+            <h3 id="modal-title" class="text-2xl font-bold mb-4 text-tea-dark border-b pb-2">Edit Item</h3>
+            <div id="modal-body" class="space-y-4"></div>
+            <div class="mt-6 flex justify-end space-x-3">
+                <button class="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300" data-action="close-modal">Cancel</button>
+                <button id="modal-save-btn" class="px-4 py-2 text-white bg-admin-blue rounded-lg hover:bg-admin-blue/90" data-action="save-modal">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="message-modal" class="fixed top-5 right-5 bg-admin-blue text-white p-4 rounded-lg shadow-xl translate-x-full opacity-0 z-50 transition-all duration-300">
+        <span id="message-text"></span>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- STATE MANAGEMENT ---
+            const state = {
+                isLoggedIn: false, // NEW STATE FOR LOGIN
+                currentPage: 'dashboard',
+                editingItem: null,
+                
+                // MOCK DATA
+                PRODUCTS: [
+                    { id: 1, name: 'Assam Gold Blend', brand: 'Heritage & Aroma', price: 18.00, description: 'A bold, malty Assam blend...', stock: 150, type: 'Black Tea', caffeine: 'High' },
+                    { id: 2, name: 'Jasmine Green Harmony', brand: 'Zen Teas', price: 14.50, description: 'Delicate green tea...', stock: 80, type: 'Green Tea', caffeine: 'Low' },
+                    { id: 3, name: 'Earl Grey Reserve', brand: 'Heritage & Aroma', price: 22.00, description: 'Premium black tea infused with high-quality bergamot oil...', stock: 210, type: 'Black Tea', caffeine: 'High' },
+                    { id: 4, name: 'Peppermint Revive', brand: 'Herbal Infusions', price: 11.50, description: 'A refreshing, naturally caffeine-free herbal tea...', stock: 95, type: 'Herbal Infusion', caffeine: 'Caffeine Free' },
+                    { id: 5, name: 'Darjeeling First Flush', brand: 'Premium Estates', price: 35.00, description: 'The champagne of teas...', stock: 40, type: 'Darjeeling', caffeine: 'High' },
+                ], 
+
+                ORDERS: [
+                    { id: 1001, customer: 'Alice Johnson', date: '2025-10-25', total: 45.50, status: 'Shipped', items: 3, details: ['Assam Gold (2)', 'Peppermint Revive (1)'], shipping: '123 Tea Rd' },
+                    { id: 1002, customer: 'Bob Smith', date: '2025-10-26', total: 110.25, status: 'Processing', items: 5, details: ['Darjeeling First (5)'], shipping: '456 Brew St' },
+                    { id: 1003, customer: 'Charlie Brown', date: '2025-10-26', total: 22.00, status: 'Delivered', items: 1, details: ['Earl Grey Reserve (1)'], shipping: '789 Cup Ave' },
+                ],
+
+                CUSTOMERS: [
+                    { id: 201, name: 'Alice Johnson', email: 'alice@example.com', orders: 5, totalSpent: 350.00, lastOrder: '2025-10-25' },
+                    { id: 202, name: 'Bob Smith', email: 'bob@example.com', orders: 1, totalSpent: 110.25, lastOrder: '2025-10-26' },
+                ],
+
+                CATEGORIES: [
+                    { id: 1, name: 'Black Tea', count: 3, description: 'Bold and rich flavour profiles.' },
+                    { id: 2, name: 'Green Tea', count: 1, description: 'Light, fresh, and often floral.' },
+                ],
+                
+                SETTINGS: {
+                    shippingRate: 5.00,
+                    taxRate: 8.00,
+                    storeName: 'Heritage and Aroma',
+                }
+            };
+
+            // --- DOM SELECTORS ---
+            const content = document.getElementById('admin-content');
+            const sidebar = document.getElementById('sidebar');
+            const messageModal = document.getElementById('message-modal');
+            const messageText = document.getElementById('message-text');
+            const editModal = document.getElementById('edit-modal');
+            const modalBody = document.getElementById('modal-body');
+            const modalTitle = document.getElementById('modal-title');
+
+            // --- UTILITY FUNCTIONS ---
+            function showMessage(message, isError = false) {
+                messageText.textContent = message;
+                messageModal.className = `fixed top-5 right-5 text-white p-4 rounded-lg shadow-xl z-50 transition-all duration-300 ${isError ? 'bg-red-600' : 'bg-admin-blue'}`;
+                
+                messageModal.classList.remove('translate-x-full', 'opacity-0');
+                messageModal.classList.add('translate-x-0', 'opacity-100');
+                setTimeout(() => {
+                    messageModal.classList.add('translate-x-full', 'opacity-0');
+                    messageModal.classList.remove('translate-x-0', 'opacity-100');
+                }, 3000);
+            }
+
+            function formatCurrency(amount) {
+                return `$${parseFloat(amount).toFixed(2)}`;
+            }
+
+            function getStatusClass(status) {
+                if (status === 'Delivered') return 'bg-green-100 text-green-800';
+                if (status === 'Shipped') return 'bg-admin-blue text-white';
+                if (status === 'Processing') return 'bg-yellow-100 text-yellow-800';
+                if (status === 'Cancelled') return 'bg-red-100 text-red-800';
+                return 'bg-gray-100 text-gray-800';
+            }
+
+            function toggleSidebar(show) {
+                if (show) {
+                    sidebar.classList.remove('hidden');
+                    sidebar.classList.add('md:block');
+                    content.classList.remove('p-0');
+                    content.classList.add('p-4', 'md:p-8');
+                } else {
+                    sidebar.classList.add('hidden');
+                    sidebar.classList.remove('md:block');
+                    content.classList.add('p-0');
+                    content.classList.remove('p-4', 'md:p-8');
+                }
+            }
+
+            // --- LOGIN VALIDATION LOGIC ---
+            function validateLogin(email, phone, password) {
+                // 1. All fields required
+                if (!email || !phone || !password) {
+                    return "All fields are required.";
+                }
+
+                // 4. Email should end with "@gmail.com"
+                if (!email.endsWith('@gmail.com')) {
+                    return "Email must be a valid @gmail.com address.";
+                }
+
+                // 5. Phone number: only numbers, exactly 10 digits
+                const phoneRegex = /^\d{10}$/;
+                if (!phoneRegex.test(phone)) {
+                    return "Phone number must be exactly 10 digits (numbers only).";
+                }
+
+                // 2 & 3. Password: length 8-10, upper, lower, number, special
+                // (?=.*[a-z])  : at least one lower case
+                // (?=.*[A-Z])  : at least one upper case
+                // (?=.*\d)     : at least one digit
+                // (?=.*[@$!%*?&]) : at least one special character
+                // .{8,10}      : length between 8 and 10
+                const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,10}$/;
+                
+                if (password.length < 8 || password.length > 10) {
+                     return "Password must be between 8 and 10 characters.";
+                }
+
+                if (!passwordRegex.test(password)) {
+                    return "Password must contain Uppercase, Lowercase, Number, and a Special Symbol.";
+                }
+
+                return null; // No errors
+            }
+
+            // --- RENDERERS ---
+
+            function renderLoginPage() {
+                return `
+                    <div class="min-h-screen flex items-center justify-center login-bg p-4">
+                        <div class="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 w-full max-w-md border-t-4 border-tea-accent">
+                            <div class="text-center mb-8">
+                                <h1 class="text-3xl font-bold text-tea-dark">Heritage & Aroma</h1>
+                                <p class="text-gray-500 mt-2">Admin Portal Login</p>
+                            </div>
+                            
+                            <form id="login-form" class="space-y-5">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Email Address</label>
+                                    <input type="email" id="login-email" placeholder="admin@gmail.com" class="mt-1 block w-full p-3 border border-gray-300 rounded-lg focus:ring-tea-accent focus:border-tea-accent transition" required>
+                                    <p class="text-xs text-gray-400 mt-1">Must end with @gmail.com</p>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Phone Number</label>
+                                    <input type="text" id="login-phone" placeholder="9876543210" class="mt-1 block w-full p-3 border border-gray-300 rounded-lg focus:ring-tea-accent focus:border-tea-accent transition" required>
+                                    <p class="text-xs text-gray-400 mt-1">10 digits, numbers only</p>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Password</label>
+                                    <input type="password" id="login-password" placeholder="********" class="mt-1 block w-full p-3 border border-gray-300 rounded-lg focus:ring-tea-accent focus:border-tea-accent transition" required>
+                                    <p class="text-xs text-gray-400 mt-1">8-10 chars (Upper, Lower, Number, Special)</p>
+                                </div>
+
+                                <div id="login-error" class="hidden bg-red-50 text-red-600 text-sm p-3 rounded-lg border border-red-200"></div>
+
+                                <button type="submit" class="w-full bg-tea-dark hover:bg-tea-dark-light text-white font-bold py-3 px-4 rounded-lg transition duration-300 shadow-lg transform hover:-translate-y-0.5">
+                                    Login to Dashboard
+                                </button>
+                            </form>
+                            <div class="mt-6 text-center">
+                                <p class="text-xs text-gray-400">Demo Password Idea: Abcd@123</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            function renderInputField(label, id, value, type = 'text') {
+                return `
+                    <div>
+                        <label for="${id}" class="block text-sm font-medium text-gray-700">${label}</label>
+                        <input type="${type}" id="${id}" value="${value}" class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-admin-blue focus:border-admin-blue">
+                    </div>
+                `;
+            }
+
+            // ... (Keep existing Modal Render functions: Product, Order, Customer, Category) ...
+            function renderProductEditForm(product) {
+                return `
+                    <form id="edit-product-form">
+                        ${renderInputField('Product Name', 'edit-name', product.name)}
+                        ${renderInputField('Brand', 'edit-brand', product.brand)}
+                        <div class="grid grid-cols-2 gap-4">
+                            ${renderInputField('Price ($)', 'edit-price', product.price.toFixed(2), 'number')}
+                            ${renderInputField('Stock Quantity', 'edit-stock', product.stock, 'number')}
+                        </div>
+                    </form>
+                `;
+            }
+            function renderOrderEditForm(order) {
+                const statusOptions = ['Processing', 'Shipped', 'Delivered', 'Cancelled'];
+                const statusSelect = statusOptions.map(s => `<option value="${s}" ${order.status === s ? 'selected' : ''}>${s}</option>`).join('');
+                return `<form id="edit-order-form">${renderInputField('Customer', 'edit-customer', order.customer)}<div class="grid grid-cols-2 gap-4">${renderInputField('Total ($)', 'edit-total', order.total.toFixed(2), 'number')}${renderInputField('Date', 'edit-date', order.date, 'date')}</div><div><label class="block text-sm font-medium text-gray-700">Status</label><select id="edit-status" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">${statusSelect}</select></div>${renderInputField('Shipping Address', 'edit-shipping', order.shipping)}</form>`;
+            }
+            function renderCustomerEditForm(customer) { return `<form id="edit-customer-form">${renderInputField('Customer Name', 'edit-name', customer.name)}${renderInputField('Email', 'edit-email', customer.email, 'email')}<div class="grid grid-cols-2 gap-4">${renderInputField('Total Orders', 'edit-orders', customer.orders, 'number')}${renderInputField('Total Spent ($)', 'edit-spent', customer.totalSpent.toFixed(2), 'number')}</div></form>`; }
+            function renderCategoryEditForm(category) { return `<form id="edit-category-form">${renderInputField('Category Name', 'edit-name', category.name)}<div><label class="block text-sm font-medium text-gray-700">Description</label><textarea id="edit-description" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">${category.description}</textarea></div></form>`; }
+
+
+            // --- PAGE CONTENT RENDERERS (Keep existing Dashboard, Products, etc.) ---
+            function renderDashboardPage() {
+                const totalRevenue = state.ORDERS.filter(o => o.status !== 'Cancelled').reduce((sum, order) => sum + order.total, 0);
+                return `
+                    <h2 class="text-3xl font-bold mb-8 text-tea-dark">Dashboard</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                        <div class="card flex items-center justify-between"><div><p class="text-sm font-medium text-gray-500">Total Revenue</p><p class="text-3xl font-bold text-tea-dark">${formatCurrency(totalRevenue)}</p></div></div>
+                        <div class="card flex items-center justify-between"><div><p class="text-sm font-medium text-gray-500">Total Orders</p><p class="text-3xl font-bold text-tea-dark">${state.ORDERS.length}</p></div></div>
+                        <div class="card flex items-center justify-between"><div><p class="text-sm font-medium text-gray-500">Active Products</p><p class="text-3xl font-bold text-tea-dark">${state.PRODUCTS.length}</p></div></div>
+                        <div class="card flex items-center justify-between"><div><p class="text-sm font-medium text-gray-500">Customers</p><p class="text-3xl font-bold text-tea-dark">${state.CUSTOMERS.length}</p></div></div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h3 class="text-2xl font-bold mb-4 text-tea-dark border-b pb-2">Recent Orders</h3>
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead><tr><th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">ID</th><th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Customer</th><th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Total</th><th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th></tr></thead>
+                            <tbody class="divide-y divide-gray-200">
+                                ${state.ORDERS.slice(0, 5).map(order => `<tr><td class="px-4 py-3 text-sm font-medium text-admin-blue">${order.id}</td><td class="px-4 py-3 text-sm">${order.customer}</td><td class="px-4 py-3 text-sm font-medium">${formatCurrency(order.total)}</td><td class="px-4 py-3"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusClass(order.status)}">${order.status}</span></td></tr>`).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+
+            function renderProductManagementPage() {
+                return `
+                    <h2 class="text-3xl font-bold mb-6 text-tea-dark">Product Management</h2>
+                    <div class="flex justify-between items-center mb-6"><p class="text-gray-600">${state.PRODUCTS.length} Total Products</p><button class="btn bg-admin-blue text-white px-4 py-2 rounded" data-action="add-new" data-type="product">+ Add Product</button></div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg overflow-x-auto"><table class="min-w-full divide-y divide-gray-200"><thead><tr><th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Name</th><th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Price</th><th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Stock</th><th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Actions</th></tr></thead><tbody class="divide-y divide-gray-200">${state.PRODUCTS.map(p => `<tr><td class="px-4 py-3 text-sm">${p.name}</td><td class="px-4 py-3 text-sm">${formatCurrency(p.price)}</td><td class="px-4 py-3 text-sm">${p.stock}</td><td class="px-4 py-3 text-center space-x-2"><button class="action-btn bg-yellow-100 text-yellow-800" data-action="open-edit" data-type="product" data-id="${p.id}">Edit</button><button class="action-btn bg-red-100 text-red-800" data-action="delete-item" data-type="product" data-id="${p.id}">Delete</button></td></tr>`).join('')}</tbody></table></div>`;
+            }
+            function renderOrderManagementPage() {
+                 return `<h2 class="text-3xl font-bold mb-6 text-tea-dark">Order Management</h2><div class="bg-white p-6 rounded-xl shadow-lg overflow-x-auto"><table class="min-w-full divide-y divide-gray-200"><thead><tr><th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">ID</th><th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Customer</th><th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Total</th><th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th><th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Actions</th></tr></thead><tbody class="divide-y divide-gray-200">${state.ORDERS.map(o => `<tr><td class="px-4 py-3 text-sm text-admin-blue">${o.id}</td><td class="px-4 py-3 text-sm">${o.customer}</td><td class="px-4 py-3 text-sm">${formatCurrency(o.total)}</td><td class="px-4 py-3"><span class="px-2 rounded-full text-xs font-semibold ${getStatusClass(o.status)}">${o.status}</span></td><td class="px-4 py-3 text-center space-x-2"><button class="action-btn bg-admin-blue/10 text-admin-blue" data-action="open-edit" data-type="order" data-id="${o.id}">Edit</button></td></tr>`).join('')}</tbody></table></div>`;
+            }
+            function renderCustomerManagementPage() {
+                return `<h2 class="text-3xl font-bold mb-6 text-tea-dark">Customer Management</h2><div class="bg-white p-6 rounded-xl shadow-lg overflow-x-auto"><table class="min-w-full divide-y divide-gray-200"><thead><tr><th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Name</th><th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Email</th><th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Orders</th><th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Actions</th></tr></thead><tbody class="divide-y divide-gray-200">${state.CUSTOMERS.map(c => `<tr><td class="px-4 py-3 text-sm font-medium">${c.name}</td><td class="px-4 py-3 text-sm">${c.email}</td><td class="px-4 py-3 text-sm">${c.orders}</td><td class="px-4 py-3 text-center"><button class="action-btn bg-admin-blue/10 text-admin-blue" data-action="open-edit" data-type="customer" data-id="${c.id}">Edit</button></td></tr>`).join('')}</tbody></table></div>`;
+            }
+            function renderCategoryManagementPage() {
+                return `<h2 class="text-3xl font-bold mb-6 text-tea-dark">Category Management</h2><div class="bg-white p-6 rounded-xl shadow-lg overflow-x-auto"><table class="min-w-full divide-y divide-gray-200"><thead><tr><th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Name</th><th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Count</th><th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Actions</th></tr></thead><tbody class="divide-y divide-gray-200">${state.CATEGORIES.map(c => `<tr><td class="px-4 py-3 text-sm font-medium">${c.name}</td><td class="px-4 py-3 text-sm">${c.count}</td><td class="px-4 py-3 text-center"><button class="action-btn bg-yellow-100 text-yellow-800" data-action="open-edit" data-type="category" data-id="${c.id}">Edit</button></td></tr>`).join('')}</tbody></table></div>`;
+            }
+            function renderSettingsPage() {
+                return `<h2 class="text-3xl font-bold mb-6 text-tea-dark">Settings</h2><div class="bg-white p-6 rounded-xl shadow-lg"><form id="settings-form" class="space-y-4"><div><label class="block text-sm font-medium text-gray-700">Store Name</label><input type="text" id="setting-storeName" value="${state.SETTINGS.storeName}" class="mt-1 block w-full p-2 border border-gray-300 rounded-md"></div><button type="submit" class="btn bg-admin-blue text-white px-4 py-2 rounded" data-action="save-settings">Save Settings</button></form></div>`;
+            }
+
+            // --- NAVIGATION ---
+            function renderPage() {
+                // 1. CHECK LOGIN STATE FIRST
+                if (!state.isLoggedIn) {
+                    toggleSidebar(false);
+                    content.innerHTML = renderLoginPage();
+                    
+                    // Attach Login Event Listener explicitly here since DOM was just created
+                    document.getElementById('login-form').addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        const email = document.getElementById('login-email').value;
+                        const phone = document.getElementById('login-phone').value;
+                        const password = document.getElementById('login-password').value;
+                        const errorDiv = document.getElementById('login-error');
+
+                        const error = validateLogin(email, phone, password);
+
+                        if (error) {
+                            errorDiv.textContent = error;
+                            errorDiv.classList.remove('hidden');
+                        } else {
+                            // SUCCESS
+                            state.isLoggedIn = true;
+                            showMessage('Login Successful! Welcome back.');
+                            renderPage(); // Re-render to show Dashboard
+                        }
+                    });
+                    return; 
+                }
+
+                // 2. IF LOGGED IN, SHOW DASHBOARD
+                toggleSidebar(true);
+                
+                // Clear content and highlight sidebar
+                content.innerHTML = ''; 
+                document.querySelectorAll('.sidebar-link').forEach(link => link.classList.remove('active'));
+                const activeLink = document.querySelector(`[data-nav="${state.currentPage}"]`);
+                if (activeLink) activeLink.classList.add('active');
+
+                switch (state.currentPage) {
+                    case 'dashboard': content.innerHTML = renderDashboardPage(); break;
+                    case 'products': content.innerHTML = renderProductManagementPage(); break;
+                    case 'orders': content.innerHTML = renderOrderManagementPage(); break;
+                    case 'customers': content.innerHTML = renderCustomerManagementPage(); break;
+                    case 'categories': content.innerHTML = renderCategoryManagementPage(); break;
+                    case 'settings': content.innerHTML = renderSettingsPage(); break;
+                    default: content.innerHTML = renderDashboardPage();
+                }
+            }
+
+            function navigateTo(page) {
+                if (state.currentPage !== page) {
+                    state.currentPage = page;
+                    renderPage();
+                    window.scrollTo(0, 0); 
+                }
+            }
+
+            function openModal(type, id) {
+                state.editingItem = { type, id: parseInt(id) };
+                let item;
+                if (type === 'product') {
+                    item = state.PRODUCTS.find(p => p.id === state.editingItem.id);
+                    modalTitle.textContent = `Edit Product: ${item.name}`;
+                    modalBody.innerHTML = renderProductEditForm(item);
+                } else if (type === 'order') {
+                    item = state.ORDERS.find(o => o.id === state.editingItem.id);
+                    modalTitle.textContent = `Edit Order: #${item.id}`;
+                    modalBody.innerHTML = renderOrderEditForm(item);
+                } else if (type === 'customer') {
+                    item = state.CUSTOMERS.find(c => c.id === state.editingItem.id);
+                    modalTitle.textContent = `Edit Customer: ${item.name}`;
+                    modalBody.innerHTML = renderCustomerEditForm(item);
+                } else if (type === 'category') {
+                    item = state.CATEGORIES.find(c => c.id === state.editingItem.id);
+                    modalTitle.textContent = `Edit Category: ${item.name}`;
+                    modalBody.innerHTML = renderCategoryEditForm(item);
+                }
+                editModal.classList.remove('hidden');
+                setTimeout(() => {
+                    editModal.querySelector('div').classList.remove('scale-95', 'opacity-0');
+                    editModal.querySelector('div').classList.add('scale-100', 'opacity-100');
+                }, 10);
+            }
+
+            function closeModal() {
+                editModal.querySelector('div').classList.add('scale-95', 'opacity-0');
+                editModal.querySelector('div').classList.remove('scale-100', 'opacity-100');
+                setTimeout(() => {
+                    editModal.classList.add('hidden');
+                    state.editingItem = null;
+                }, 300);
+            }
+
+            // --- EVENT DELEGATION ---
+            document.addEventListener('click', (e) => {
+                const navTarget = e.target.closest('[data-nav]');
+                const actionTarget = e.target.closest('[data-action]');
+                
+                if (navTarget) {
+                    e.preventDefault();
+                    navigateTo(navTarget.dataset.nav);
+                } else if (actionTarget) {
+                    e.preventDefault();
+                    const action = actionTarget.dataset.action;
+                    const id = actionTarget.dataset.id;
+                    const type = actionTarget.dataset.type;
+
+                    if (action === 'logout') {
+                        state.isLoggedIn = false;
+                        state.currentPage = 'dashboard';
+                        showMessage('Logged out successfully.');
+                        renderPage();
+                    } 
+                    else if (action === 'open-edit') openModal(type, id);
+                    else if (action === 'close-modal') closeModal();
+                    else if (action === 'delete-item') {
+                        if(confirm("Delete this item?")) {
+                            // Simple Filter logic for demo
+                            if(type === 'product') state.PRODUCTS = state.PRODUCTS.filter(i => i.id != id);
+                            if(type === 'order') state.ORDERS = state.ORDERS.filter(i => i.id != id);
+                            if(type === 'customer') state.CUSTOMERS = state.CUSTOMERS.filter(i => i.id != id);
+                            if(type === 'category') state.CATEGORIES = state.CATEGORIES.filter(i => i.id != id);
+                            showMessage('Item deleted.');
+                            renderPage();
+                        }
+                    }
+                    else if (action === 'save-modal') {
+                        // (Simplification: In real app, grab data from forms and update state)
+                        showMessage('Changes simulated saved!');
+                        closeModal();
+                        renderPage();
+                    }
+                    else if (action === 'save-settings') {
+                        showMessage('Settings saved!');
+                    }
+                }
+            });
+
+            // --- INIT ---
+            renderPage();
+        });
+    </script>
+</body>
+</html>
